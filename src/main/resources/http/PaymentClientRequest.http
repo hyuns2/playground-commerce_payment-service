@@ -1,0 +1,31 @@
+### 결제 승인 API
+POST http://localhost:8084/payment/client/approve
+Content-Type: application/json
+
+{
+  "idempotencyKey": "idempotency-123-approve",
+  "orderExternalId": "order-123",
+  "paymentKey": "payment-123-approve",
+  "amount": 10000
+}
+
+### 전체취소 API
+POST http://localhost:8084/payment/client/cancel
+Content-Type: application/json
+
+{
+  "idempotencyKey": "idempotency-678-cancel",
+  "paymentKey": "payment-123-approve",
+  "reason": "단순변심"
+}
+
+### 부분취소 API
+POST http://localhost:8084/payment/client/partial-cancel
+Content-Type: application/json
+
+{
+  "idempotencyKey": "idempotency-123-cancel",
+  "paymentKey": "payment-123-approve",
+  "amount": 5000,
+  "reason": "단순변심"
+}

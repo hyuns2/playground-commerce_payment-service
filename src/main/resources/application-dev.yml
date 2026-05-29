@@ -1,0 +1,70 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB_PAYMENT}?rewriteBatchedStatements=true
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_HIBERNATE_DDL-AUTO}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: ${SQL_INIT_MODE}
+      data-locations: classpath:data.sql
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,prometheus,metrics
+    metrics:
+      distribution:
+        percentiles-histogram:
+          http:
+            server:
+              requests: true
+
+api:
+  internal:
+    order-service:
+      url: ${ORDER_URL}
+  external:
+    toss-payments:
+      url: https://api.tosspayments.com/v1/payments
+      grant-type: Basic
+      secret-key: ${TOSS_SECRET_KEY}
+
+logging:
+  level:
+    root: WARN
+    io.playground: ERROR
+
+    org.springframework.jdbc.core: ERROR
+    org.springframework.jdbc.core.StatementCreatorUtils: ERROR
+
+    org.hibernate.SQL: ERROR
+    org.hibernate.orm.jdbc.bind: ERROR
+
+    org.apache.kafka: ERROR
+    org.springframework.kafka: ERROR
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
