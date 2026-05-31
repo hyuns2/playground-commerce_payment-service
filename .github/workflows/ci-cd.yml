@@ -48,7 +48,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:${{ github.run_number }}
 
   CD:
     needs: CI
@@ -62,7 +62,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ~/playground
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_IMAGE }}
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:${{ github.run_number }}
             sudo docker stop ${{ secrets.DOCKER_IMAGE }} 2>/dev/null || true
             sudo docker rm ${{ secrets.DOCKER_IMAGE }} 2>/dev/null || true
             

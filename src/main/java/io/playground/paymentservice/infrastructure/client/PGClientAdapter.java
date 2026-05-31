@@ -65,7 +65,7 @@ public class PGClientAdapter implements PGClientPort {
     }
 
     private PGClientDto.ApproveResponse cancelWithDummy(PGClientDto.CancelRequest cancelRequest) throws InterruptedException {
-        Thread.sleep(3000L);
+        Thread.sleep(300L);
 
         return PGClientDto.ApproveResponse.builder()
                 .orderId(null)

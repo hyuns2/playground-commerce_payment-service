@@ -44,9 +44,6 @@ spring:
               requests: true
 
 api:
-  internal:
-    order-service:
-      url: ${ORDER_URL}
   external:
     toss-payments:
       url: https://api.tosspayments.com/v1/payments
