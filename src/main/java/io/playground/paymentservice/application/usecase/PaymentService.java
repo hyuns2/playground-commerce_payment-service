@@ -11,8 +11,6 @@ import io.playground.paymentservice.exception.BusinessErrorCode;
 import io.playground.paymentservice.exception.BusinessException;
 import io.playground.paymentservice.infrastructure.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +34,6 @@ public class PaymentService {
      * @param paymentKey PG사에서 발급한 결제 고유키
      * @param amount 결제 승인 금액
      */
-    @Retryable(
-            noRetryFor = BusinessDetailException.class,
-            backoff = @Backoff(
-                    delay = 1000, multiplier = 2
-            )
-    )
     @Transactional
     public void approvePayment(String idempotencyKey,
                                String orderExternalId,
@@ -109,12 +101,6 @@ public class PaymentService {
      * @param paymentKey PG사에서 발급한 결제 고유키
      * @param reason 취소 사유
      */
-    @Retryable(
-            noRetryFor = BusinessDetailException.class,
-            backoff = @Backoff(
-                    delay = 1000, multiplier = 2
-            )
-    )
     @Transactional
     public void cancelPayment(String idempotencyKey,
                               String paymentKey,
@@ -203,12 +189,6 @@ public class PaymentService {
      * @param amount 부분취소 금액
      * @param reason 부분취소 사유
      */
-    @Retryable(
-            noRetryFor = BusinessDetailException.class,
-            backoff = @Backoff(
-                    delay = 1000, multiplier = 2
-            )
-    )
     @Transactional
     public void cancelPartially(String idempotencyKey,
                                 String paymentKey,
