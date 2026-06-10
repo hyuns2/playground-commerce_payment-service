@@ -26,7 +26,7 @@ public class PGClientAdapter implements PGClientPort {
     }
 
     private PGClientDto.ApproveResponse approveWithDummy(PGClientDto.ApproveRequest approveRequest) throws InterruptedException {
-        Thread.sleep(3000L);
+        Thread.sleep(300L);
 
         return PGClientDto.ApproveResponse.builder()
                 .orderId(approveRequest.orderId())
