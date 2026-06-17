@@ -12,18 +12,19 @@ import io.playground.paymentservice.exception.BusinessException;
 import io.playground.paymentservice.infrastructure.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+// ToDo: PG사 에러 세분화 필요
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
     private final PaymentPersistencePort paymentPersistence;
     private final TransactionPersistencePort transactionPersistence;
     private final PGClientPort pgClient;
+    private final PaymentTxService paymentTxService;
     private final JsonUtil jsonUtil;
 
     /**
@@ -34,7 +35,6 @@ public class PaymentService {
      * @param paymentKey PG사에서 발급한 결제 고유키
      * @param amount 결제 승인 금액
      */
-    @Transactional
     public void approvePayment(String idempotencyKey,
                                String orderExternalId,
                                String paymentKey,
@@ -69,28 +69,10 @@ public class PaymentService {
                     BusinessErrorCode.PAYMENT_APPROVE_FAILED
             );
 
-        // 결제 정보 저장
-        Payment payment = paymentPersistence.save(
-                Payment.of(
-                        null,
-                        response.paymentKey(),
-                        response.orderId(),
-                        response.amount(),
-                        response.isPartialCancelable(),
-                        response.status()
-                )
-        );
-
-        // 거래내역 저장
-        transactionPersistence.save(
-                Transaction.of(
-                        null,
-                        payment.getId(),
-                        Transaction.TransactionType.APPROVE,
-                        response.amount(),
-                        idempotencyKey,
-                        response.lastTransactionKey()
-                )
+        // 결제정보 및 거래내역 저장
+        paymentTxService.approvePayment(
+                response,
+                idempotencyKey
         );
     }
 
@@ -101,7 +83,6 @@ public class PaymentService {
      * @param paymentKey PG사에서 발급한 결제 고유키
      * @param reason 취소 사유
      */
-    @Transactional
     public void cancelPayment(String idempotencyKey,
                               String paymentKey,
                               String reason) {
@@ -155,30 +136,12 @@ public class PaymentService {
                     BusinessErrorCode.PAYMENT_CANCELLATION_FAILED
             );
 
-        // 취소 거래내역 저장
-        transactionPersistence.save(
-                Transaction.of(
-                        null,
-                        payment.getId(),
-                        Transaction.TransactionType.CANCEL,
-                        response.cancelResponses()
-                                .get(0)
-                                .cancelAmount(),
-                        idempotencyKey,
-                        response.lastTransactionKey()
-                )
-        );
-
-        // 결제 상태 전체취소로 업데이트
-        if (!paymentPersistence.updateStatusById(
+        // 결제정보 업데이트 및 거래내역 저장
+        paymentTxService.cancelPayment(
                 payment.getId(),
-                Payment.PaymentStatus.CANCELED,
-                List.of(Payment.PaymentStatus.SUCCESS)
-        ))
-            throw new BusinessDetailException(
-                    BusinessErrorCode.PAYMENT_CANCELLATION_FAILED,
-                    "PAYMENT_STATUS_UPDATE_FAILED"
-            );
+                response,
+                idempotencyKey
+        );
     }
 
     /**
@@ -189,7 +152,6 @@ public class PaymentService {
      * @param amount 부분취소 금액
      * @param reason 부분취소 사유
      */
-    @Transactional
     public void cancelPartially(String idempotencyKey,
                                 String paymentKey,
                                 BigDecimal amount,
@@ -275,32 +237,11 @@ public class PaymentService {
                     BusinessErrorCode.PAYMENT_PARTIAL_CANCELLATION_FAILED
             );
 
-        // 부분취소 거래 저장
-        transactionPersistence.save(
-                Transaction.of(
-                        null,
-                        payment.getId(),
-                        Transaction.TransactionType.PARTIAL_CANCEL,
-                        response.cancelResponses().stream()
-                                .map(PGClientDto.CancelResponse::cancelAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add),
-                        idempotencyKey,
-                        response.lastTransactionKey()
-                )
-        );
-
-        // 결제 상태 부분취소로 업데이트
-        if (!paymentPersistence.updateStatusById(
+        // 결제정보 업데이트 및 거래내역 저장
+        paymentTxService.cancelPartially(
                 payment.getId(),
-                Payment.PaymentStatus.PARTIAL_CANCELED,
-                List.of(
-                        Payment.PaymentStatus.SUCCESS,
-                        Payment.PaymentStatus.PARTIAL_CANCELED
-                )
-        ))
-            throw new BusinessDetailException(
-                    BusinessErrorCode.PAYMENT_CANCELLATION_FAILED,
-                    "PAYMENT_STATUS_UPDATE_FAILED"
-            );
+                response,
+                idempotencyKey
+        );
     }
 }
