@@ -23,6 +23,7 @@ spring:
         order_inserts: true
         order_updates: true
     defer-datasource-initialization: true
+    open-in-view: false
 
   sql:
     init:
