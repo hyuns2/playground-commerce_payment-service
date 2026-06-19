@@ -17,8 +17,8 @@ import java.math.BigDecimal;
 @Table(
         name = "transactions",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_paymentId_idempotencyKey",
-                columnNames = {"paymentId", "idempotencyKey"}
+                name = "uk_idempotencyKey_paymentId",
+                columnNames = {"idempotencyKey", "paymentId"}
         )
 )
 public class TransactionEntity {

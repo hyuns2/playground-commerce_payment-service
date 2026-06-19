@@ -17,8 +17,8 @@ public class TransactionPersistenceAdapter implements TransactionPersistencePort
     public boolean existsByPaymentKeyAndIdempotencyKey(String paymentKey,
                                                        String idempotencyKey) {
         return transactionRepository
-                .existsByPayment_PaymentKeyAndIdempotencyKey(
-                        paymentKey, idempotencyKey
+                .existsByIdempotencyKeyAndPayment_PaymentKey(
+                        idempotencyKey, paymentKey
                 );
     }
 
